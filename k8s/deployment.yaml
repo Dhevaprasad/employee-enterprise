@@ -20,7 +20,7 @@ spec:
       containers:
       - name: employee-enterprise
 
-        image: employeeacrdheva01.azurecr.io/employee-enterprise
+        image: employeeacrdheva01.azurecr.io/employee-enterprise:v1
 
         ports:
         - containerPort: 5000
