@@ -1,0 +1,79 @@
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  imageName: employee-enterprise
+  imageTag: $(Build.BuildId)
+
+stages:
+
+- stage: Build
+  jobs:
+  - job: Build
+    steps:
+    - checkout: self
+
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.13'
+
+    - script: |
+        python -m pip install --upgrade pip
+        pip install -r app/requirements.txt
+      displayName: Install Dependencies
+
+- stage: Test
+  dependsOn: Build
+  jobs:
+  - job: Test
+    steps:
+    - checkout: self
+
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.13'
+
+    - script: |
+        pip install -r app/requirements.txt
+        pytest app/test_app.py
+      displayName: Run Tests
+
+- stage: Docker
+  dependsOn: Test
+  jobs:
+  - job: Docker
+    steps:
+    - checkout: self
+
+    - task: Docker@2
+      inputs:
+        command: buildAndPush
+        repository: $(imageName)
+        dockerfile: app/Dockerfile
+        containerRegistry: ACR-ServiceConnection
+        tags: |
+          $(imageTag)
+
+- stage: Deploy
+  dependsOn: Docker
+  jobs:
+  - deployment: DeployAKS
+    environment: production
+
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: KubernetesManifest@1
+            inputs:
+              action: deploy
+              kubernetesServiceConnection: AKS-ServiceConnection
+              namespace: default
+              manifests: |
+                k8s/deployment.yaml
+                k8s/service.yaml
+              containers: |
+                employeeacrdheva01.azurecr.io/$(imageName):$(imageTag)
