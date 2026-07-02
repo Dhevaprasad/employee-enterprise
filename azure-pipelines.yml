@@ -73,7 +73,7 @@ stages:
               echo ""
               echo "Files in repository:"
               find . -type f
-               displayName: "Debug Repository Files"
+            displayName: "Debug Repository Files"
 
           - task: KubernetesManifest@1
             inputs:
