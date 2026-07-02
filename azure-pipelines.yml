@@ -67,6 +67,14 @@ stages:
       runOnce:
         deploy:
           steps:
+          - script: |
+              echo "Current directory:"
+              pwd
+              echo ""
+              echo "Files in repository:"
+              find . -type f
+               displayName: "Debug Repository Files"
+
           - task: KubernetesManifest@1
             inputs:
               action: deploy
