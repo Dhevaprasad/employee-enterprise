@@ -67,6 +67,8 @@ stages:
       runOnce:
         deploy:
           steps:
+          - checkout: self
+          
           - script: |
               echo "Current directory:"
               pwd
